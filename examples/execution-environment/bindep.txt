@@ -5,7 +5,9 @@
 python3-devel [platform:rpm]
 gcc [platform:rpm compile]
 
+# Required for sysctl module
+procps-ng [platform:rpm]
+
 # Add other system dependencies as needed
 # git [platform:rpm]
 # openssh-clients [platform:rpm]
-
