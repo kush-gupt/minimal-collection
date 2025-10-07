@@ -188,4 +188,3 @@ jobs:
         run: |
           podman rmi ${{ matrix.base_image.tag }} || true
           podman system prune -f || true
-

@@ -43,4 +43,3 @@ jobs:
         run: |
           ansible-doc kush_gupt.minimal_collection.sysctl
           ansible-doc kush_gupt.minimal_collection.ini_file
-

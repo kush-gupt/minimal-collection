@@ -15,4 +15,3 @@ releases:
       - description: Manage INI file entries
         name: ini_file
         namespace: ''
-

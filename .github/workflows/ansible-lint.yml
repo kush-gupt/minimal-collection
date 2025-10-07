@@ -33,4 +33,3 @@ jobs:
         run: |
           ansible-lint --version
           ansible-lint --show-relpath
-
