@@ -50,10 +50,16 @@ jobs:
         with:
           working-directory: ${{ github.workspace }}
 
+      - name: Copy collection tarball to EE directory
+        run: |
+          cp ${{ github.workspace }}/kush_gupt-minimal_collection-*.tar.gz ./
+          ls -lh kush_gupt-minimal_collection-*.tar.gz
+        working-directory: ${{ github.workspace }}/examples/execution-environment
+
       - name: Create temporary requirements.yml for local collection
         run: |
-          # Find the exact tarball filename
-          TARBALL=$(ls ${{ github.workspace }}/kush_gupt-minimal_collection-*.tar.gz)
+          # Find the exact tarball filename (in current directory)
+          TARBALL=$(basename $(ls kush_gupt-minimal_collection-*.tar.gz))
           echo "Found tarball: ${TARBALL}"
 
           cat > requirements-local.yml <<EOF
@@ -186,5 +192,10 @@ jobs:
       - name: Clean up
         if: always()
         run: |
+          # Clean up container images
           podman rmi ${{ matrix.base_image.tag }} || true
           podman system prune -f || true
+
+          # Clean up temporary files in EE directory
+          cd ${{ github.workspace }}/examples/execution-environment
+          rm -f kush_gupt-minimal_collection-*.tar.gz requirements-local.yml || true
