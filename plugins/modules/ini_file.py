@@ -17,7 +17,7 @@ module: ini_file
 short_description: Tweak settings in INI files
 extends_documentation_fragment:
   - files
-  - community.general.attributes
+  - kush_gupt.minimal_collection.attributes
 description:
   - Manage (add, remove, change) individual settings in an INI-style file without having to manage the file as a whole with,
     say, M(ansible.builtin.template) or M(ansible.builtin.assemble).
