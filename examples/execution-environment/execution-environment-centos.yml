@@ -22,9 +22,13 @@ additional_build_steps:
   prepend_galaxy:
     - RUN echo "Installing kush_gupt.minimal_collection"
 
+  prepend_final:
+    - RUN python3 -m pip install ansible-runner
+
   append_final:
     - RUN ansible-galaxy collection list | grep minimal_collection || echo "Collection not found"
     - RUN ansible --version
+    - RUN ansible-runner --version
     - RUN echo "CentOS Stream EE build complete"
 
 options:
