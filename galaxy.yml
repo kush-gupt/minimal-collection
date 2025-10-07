@@ -1,0 +1,28 @@
+---
+namespace: kush_gupt
+name: minimal_collection
+version: 1.0.0
+readme: README.md
+authors:
+  - Kush Gupta
+
+description: A minimal Ansible collection containing sysctl and ini_file modules from ansible.posix and community.general
+
+license:
+  - GPL-3.0-or-later
+
+tags:
+  - sysctl
+  - ini_file
+  - system
+  - configuration
+
+repository: https://github.com/kush-gupt/minimal-collection
+documentation: https://github.com/kush-gupt/minimal-collection
+homepage: https://github.com/kush-gupt/minimal-collection
+issues: https://github.com/kush-gupt/minimal-collection/issues
+
+build_ignore:
+  - .gitignore
+  - .github
+
