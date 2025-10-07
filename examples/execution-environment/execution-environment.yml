@@ -11,11 +11,10 @@ dependencies:
 additional_build_steps:
   prepend_base:
     - RUN echo "Building custom EE with kush_gupt.minimal_collection"
-  
+
   append_final:
     - RUN ansible-galaxy collection list | grep minimal_collection
     - RUN echo "Custom EE build complete"
 
 options:
   package_manager_path: /usr/bin/microdnf
-

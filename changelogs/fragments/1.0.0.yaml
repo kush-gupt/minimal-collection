@@ -1,0 +1,5 @@
+---
+release_summary: |
+  Initial release of kush_gupt.minimal_collection containing sysctl and ini_file modules.
+  These modules are sourced from ansible.posix and community.general collections.
+

@@ -14,7 +14,7 @@ jobs:
   ansible-lint:
     name: Lint Ansible Content
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4

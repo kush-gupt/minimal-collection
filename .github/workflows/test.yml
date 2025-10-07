@@ -16,7 +16,7 @@ jobs:
       matrix:
         python-version: ['3.9', '3.10', '3.11']
         ansible-version: ['ansible-core>=2.13,<2.14', 'ansible-core>=2.14,<2.15', 'ansible-core>=2.15,<2.16']
-    
+
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
       - name: Build the collection
         run: |
           ansible-galaxy collection build
-          
+
       - name: Install the collection
         run: |
           ansible-galaxy collection install kush_gupt-*.tar.gz

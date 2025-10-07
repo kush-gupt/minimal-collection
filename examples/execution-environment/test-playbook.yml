@@ -2,8 +2,8 @@
 - name: Test kush_gupt.minimal_collection in Execution Environment
   hosts: localhost
   connection: local
-  gather_facts: yes
-  
+  gather_facts: true
+
   tasks:
     - name: Display execution environment info
       ansible.builtin.debug:
@@ -11,35 +11,35 @@
           Testing kush_gupt.minimal_collection
           Ansible Version: {{ ansible_version.full }}
           Python Version: {{ ansible_python_version }}
-    
+
     - name: List installed collections
       ansible.builtin.command: ansible-galaxy collection list
       register: collections_list
       changed_when: false
-    
+
     - name: Show installed collections
       ansible.builtin.debug:
         var: collections_list.stdout_lines
-    
+
     - name: Test sysctl module (check mode only)
       kush_gupt.minimal_collection.sysctl:
         name: vm.swappiness
         value: "10"
         state: present
-        reload: no
-      check_mode: yes
+        reload: false
+      check_mode: true
       register: sysctl_result
-    
+
     - name: Display sysctl test result
       ansible.builtin.debug:
         msg: "Sysctl module test: {{ 'PASSED' if sysctl_result is defined else 'FAILED' }}"
-    
+
     - name: Create temporary INI file for testing
       ansible.builtin.tempfile:
         state: file
         suffix: .ini
       register: temp_ini_file
-    
+
     - name: Test ini_file module
       kush_gupt.minimal_collection.ini_file:
         path: "{{ temp_ini_file.path }}"
@@ -48,34 +48,33 @@
         value: test_value
         state: present
       register: ini_result
-    
+
     - name: Display ini_file test result
       ansible.builtin.debug:
         msg: "INI file module test: {{ 'PASSED' if ini_result is changed else 'FAILED' }}"
-    
+
     - name: Read the INI file content
       ansible.builtin.slurp:
         src: "{{ temp_ini_file.path }}"
       register: ini_content
-    
+
     - name: Show INI file content
       ansible.builtin.debug:
         msg: "{{ ini_content['content'] | b64decode }}"
-    
+
     - name: Clean up temporary file
       ansible.builtin.file:
         path: "{{ temp_ini_file.path }}"
         state: absent
-    
+
     - name: Summary
       ansible.builtin.debug:
         msg: |
           ✅ All tests completed successfully!
-          
+
           The execution environment includes:
           - kush_gupt.minimal_collection
           - sysctl module (working)
           - ini_file module (working)
-          
-          This EE is ready for production use!
 
+          This EE is ready for production use!

@@ -12,10 +12,9 @@ license:
   - GPL-3.0-or-later
 
 tags:
-  - sysctl
-  - ini_file
-  - system
-  - configuration
+  - linux
+  - infrastructure
+  - tools
 
 repository: https://github.com/kush-gupt/minimal-collection
 documentation: https://github.com/kush-gupt/minimal-collection
@@ -25,4 +24,4 @@ issues: https://github.com/kush-gupt/minimal-collection/issues
 build_ignore:
   - .gitignore
   - .github
-
+  - changelogs

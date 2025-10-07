@@ -24,14 +24,13 @@ runs:
       run: |
         echo "Building Ansible collection..."
         ansible-galaxy collection build
-        
+
         # Find the generated tarball
         TARBALL=$(ls -t *.tar.gz | head -n1)
         COLLECTION_NAME=$(basename "$TARBALL" .tar.gz)
-        
+
         echo "tarball=${{ inputs.working-directory }}/${TARBALL}" >> $GITHUB_OUTPUT
         echo "collection_name=${COLLECTION_NAME}" >> $GITHUB_OUTPUT
-        
+
         echo "✅ Built collection: ${TARBALL}"
         ls -lh "${TARBALL}"
-

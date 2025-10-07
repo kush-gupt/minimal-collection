@@ -22,14 +22,14 @@ jobs:
   test-ee-build:
     name: Build and Test Execution Environment
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         base_image:
           - name: CentOS Stream 9
             config: execution-environment-centos.yml
             tag: test-ee-centos:latest
-    
+
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
@@ -55,7 +55,7 @@ jobs:
           # Find the exact tarball filename
           TARBALL=$(ls ${{ github.workspace }}/kush_gupt-minimal_collection-*.tar.gz)
           echo "Found tarball: ${TARBALL}"
-          
+
           cat > requirements-local.yml <<EOF
           ---
           collections:
@@ -89,7 +89,7 @@ jobs:
         run: |
           echo "Checking for collection in execution environment..."
           podman run --rm ${{ matrix.base_image.tag }} ansible-galaxy collection list
-          
+
           echo ""
           echo "Verifying kush_gupt.minimal_collection is present..."
           podman run --rm ${{ matrix.base_image.tag }} \
@@ -102,7 +102,7 @@ jobs:
           echo "Testing sysctl module documentation..."
           podman run --rm ${{ matrix.base_image.tag }} \
             ansible-doc kush_gupt.minimal_collection.sysctl | head -20
-          
+
           echo ""
           echo "Testing ini_file module documentation..."
           podman run --rm ${{ matrix.base_image.tag }} \
@@ -121,18 +121,18 @@ jobs:
           echo "=== Execution Environment Details ==="
           echo "Image: ${{ matrix.base_image.tag }}"
           echo ""
-          
+
           echo "=== Ansible Version ==="
           podman run --rm ${{ matrix.base_image.tag }} ansible --version
-          
+
           echo ""
           echo "=== Python Version ==="
           podman run --rm ${{ matrix.base_image.tag }} python3 --version
-          
+
           echo ""
           echo "=== Installed Collections ==="
           podman run --rm ${{ matrix.base_image.tag }} ansible-galaxy collection list
-          
+
           echo ""
           echo "=== Image Size ==="
           podman images ${{ matrix.base_image.tag }} --format "Size: {{.Size}}"
