@@ -1,0 +1,27 @@
+---
+name: Ansible Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  ansible-lint:
+    name: Lint Ansible Content
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint-action@v6
+        with:
+          # Lint all Ansible content in the repository
+          args: ""
+

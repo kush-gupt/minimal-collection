@@ -45,17 +45,21 @@ jobs:
           pip install ansible-builder ansible-core
 
       - name: Build the collection tarball
-        run: |
-          ansible-galaxy collection build
-          ls -lh *.tar.gz
-        working-directory: ${{ github.workspace }}
+        id: build-collection
+        uses: ./.github/actions/build-collection
+        with:
+          working-directory: ${{ github.workspace }}
 
       - name: Create temporary requirements.yml for local collection
         run: |
+          # Find the exact tarball filename
+          TARBALL=$(ls ${{ github.workspace }}/kush_gupt-minimal_collection-*.tar.gz)
+          echo "Found tarball: ${TARBALL}"
+          
           cat > requirements-local.yml <<EOF
           ---
           collections:
-            - name: ${{ github.workspace }}/kush_gupt-minimal_collection-*.tar.gz
+            - name: ${TARBALL}
               type: file
           EOF
           cat requirements-local.yml
@@ -153,31 +157,31 @@ jobs:
 
       - name: Login to GitHub Container Registry
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/minimal-collection-ee-centos
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix={{branch}}-
 
       - name: Tag and push to GHCR
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
-          # Create GHCR-compatible image name (lowercase repository owner)
-          REPO_OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          GHCR_IMAGE="ghcr.io/${REPO_OWNER_LOWER}/minimal-collection-ee-centos:latest"
-          
-          echo "Tagging image for GHCR: ${GHCR_IMAGE}"
-          podman tag ${{ matrix.base_image.tag }} ${GHCR_IMAGE}
-          
-          echo "Pushing to GitHub Container Registry..."
-          podman push ${GHCR_IMAGE}
-          
-          # Also tag with commit SHA for versioning
-          GHCR_IMAGE_SHA="ghcr.io/${REPO_OWNER_LOWER}/minimal-collection-ee-centos:${{ github.sha }}"
-          echo "Tagging with commit SHA: ${GHCR_IMAGE_SHA}"
-          podman tag ${{ matrix.base_image.tag }} ${GHCR_IMAGE_SHA}
-          podman push ${GHCR_IMAGE_SHA}
-          
+          for tag in ${{ steps.meta.outputs.tags }}; do
+            echo "Tagging and pushing: ${tag}"
+            podman tag ${{ matrix.base_image.tag }} ${tag}
+            podman push ${tag}
+          done
           echo "✅ Successfully pushed execution environment to GHCR"
-          echo "Image: ${GHCR_IMAGE}"
-          echo "Image (SHA): ${GHCR_IMAGE_SHA}"
 
       - name: Clean up
         if: always()
