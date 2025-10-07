@@ -1,11 +1,10 @@
 # Python dependencies for the execution environment
 # These will be installed during the EE build
 
-# Core Ansible requirements (if not already in base image)
-# ansible-core>=2.13
+# Required: Ansible Runner for execution environment
+ansible-runner
 
 # Add any additional Python packages your collection needs
 # Example:
 # requests>=2.28.0
 # jinja2>=3.1.0
-
