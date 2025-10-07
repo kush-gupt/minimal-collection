@@ -22,7 +22,7 @@
         var: collections_list.stdout_lines
 
     - name: Test sysctl module (check mode only)
-      kush_gupt.minimal_collection.sysctl:
+      sysctl:
         name: vm.swappiness
         value: "10"
         state: present
@@ -41,7 +41,7 @@
       register: temp_ini_file
 
     - name: Test ini_file module
-      kush_gupt.minimal_collection.ini_file:
+      ini_file:
         path: "{{ temp_ini_file.path }}"
         section: test_section
         option: test_option
