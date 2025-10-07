@@ -79,6 +79,15 @@ jobs:
 
       - name: Build execution environment - ${{ matrix.base_image.name }}
         run: |
+          # First, create the build context
+          ansible-builder create \
+            --file ${{ matrix.base_image.config }} \
+            --verbosity 3
+
+          # Copy the tarball into the build context
+          cp kush_gupt-minimal_collection-*.tar.gz context/_build/
+
+          # Now build the container image
           ansible-builder build \
             --file ${{ matrix.base_image.config }} \
             --tag ${{ matrix.base_image.tag }} \
