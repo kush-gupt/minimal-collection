@@ -191,10 +191,13 @@ jobs:
       - name: Tag and push to GHCR
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
-          for tag in ${{ steps.meta.outputs.tags }}; do
-            echo "Tagging and pushing: ${tag}"
-            podman tag ${{ matrix.base_image.tag }} ${tag}
-            podman push ${tag}
+          # Read tags line by line and push each one
+          echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r tag; do
+            if [ -n "$tag" ]; then
+              echo "Tagging and pushing: ${tag}"
+              podman tag ${{ matrix.base_image.tag }} "${tag}"
+              podman push "${tag}"
+            fi
           done
           echo "✅ Successfully pushed execution environment to GHCR"
 
