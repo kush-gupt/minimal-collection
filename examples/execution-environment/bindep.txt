@@ -1,0 +1,11 @@
+# System package dependencies for the execution environment
+# Format: package_name [platform:rpm/dpkg] [test/compile/build]
+
+# Basic utilities that might be needed by modules
+python3-devel [platform:rpm]
+gcc [platform:rpm compile]
+
+# Add other system dependencies as needed
+# git [platform:rpm]
+# openssh-clients [platform:rpm]
+

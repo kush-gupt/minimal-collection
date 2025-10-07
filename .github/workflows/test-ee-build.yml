@@ -1,0 +1,159 @@
+---
+name: Test Execution Environment Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'examples/execution-environment/**'
+      - 'plugins/**'
+      - '.github/workflows/test-ee-build.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'examples/execution-environment/**'
+      - 'plugins/**'
+      - '.github/workflows/test-ee-build.yml'
+  workflow_dispatch:
+
+jobs:
+  test-ee-build:
+    name: Build and Test Execution Environment
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        base_image:
+          - name: CentOS Stream 9
+            config: execution-environment-centos.yml
+            tag: test-ee-centos:latest
+    
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install ansible-builder and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-builder ansible-core
+
+      - name: Build the collection tarball
+        run: |
+          ansible-galaxy collection build
+          ls -lh *.tar.gz
+        working-directory: ${{ github.workspace }}
+
+      - name: Create temporary requirements.yml for local collection
+        run: |
+          cat > requirements-local.yml <<EOF
+          ---
+          collections:
+            - name: ${{ github.workspace }}/kush_gupt-minimal_collection-*.tar.gz
+              type: file
+          EOF
+          cat requirements-local.yml
+        working-directory: ${{ github.workspace }}/examples/execution-environment
+
+      - name: Update EE config to use local collection
+        run: |
+          sed -i 's|galaxy: requirements.yml|galaxy: requirements-local.yml|' ${{ matrix.base_image.config }}
+          cat ${{ matrix.base_image.config }}
+        working-directory: ${{ github.workspace }}/examples/execution-environment
+
+      - name: Build execution environment - ${{ matrix.base_image.name }}
+        run: |
+          ansible-builder build \
+            --file ${{ matrix.base_image.config }} \
+            --tag ${{ matrix.base_image.tag }} \
+            --container-runtime podman \
+            --verbosity 3
+        working-directory: ${{ github.workspace }}/examples/execution-environment
+
+      - name: Verify the EE image was created
+        run: |
+          podman images
+          podman images ${{ matrix.base_image.tag }} --format "{{.Repository}}:{{.Tag}}"
+
+      - name: Test collection is installed in EE
+        run: |
+          echo "Checking for collection in execution environment..."
+          podman run --rm ${{ matrix.base_image.tag }} ansible-galaxy collection list
+          
+          echo ""
+          echo "Verifying kush_gupt.minimal_collection is present..."
+          podman run --rm ${{ matrix.base_image.tag }} \
+            ansible-galaxy collection list | grep -q "kush_gupt.minimal_collection" && \
+            echo "✅ Collection found!" || \
+            (echo "❌ Collection not found!" && exit 1)
+
+      - name: Test module documentation
+        run: |
+          echo "Testing sysctl module documentation..."
+          podman run --rm ${{ matrix.base_image.tag }} \
+            ansible-doc kush_gupt.minimal_collection.sysctl | head -20
+          
+          echo ""
+          echo "Testing ini_file module documentation..."
+          podman run --rm ${{ matrix.base_image.tag }} \
+            ansible-doc kush_gupt.minimal_collection.ini_file | head -20
+
+      - name: Run test playbook in EE
+        run: |
+          echo "Running test playbook inside execution environment..."
+          podman run --rm \
+            -v ${{ github.workspace }}/examples/execution-environment/test-playbook.yml:/runner/project/test-playbook.yml:Z \
+            ${{ matrix.base_image.tag }} \
+            ansible-playbook /runner/project/test-playbook.yml
+
+      - name: Display EE information
+        run: |
+          echo "=== Execution Environment Details ==="
+          echo "Image: ${{ matrix.base_image.tag }}"
+          echo ""
+          
+          echo "=== Ansible Version ==="
+          podman run --rm ${{ matrix.base_image.tag }} ansible --version
+          
+          echo ""
+          echo "=== Python Version ==="
+          podman run --rm ${{ matrix.base_image.tag }} python3 --version
+          
+          echo ""
+          echo "=== Installed Collections ==="
+          podman run --rm ${{ matrix.base_image.tag }} ansible-galaxy collection list
+          
+          echo ""
+          echo "=== Image Size ==="
+          podman images ${{ matrix.base_image.tag }} --format "Size: {{.Size}}"
+
+      - name: Save build logs as artifact
+        if: always()
+        run: |
+          mkdir -p build-logs
+          podman images > build-logs/images.txt
+          podman run --rm ${{ matrix.base_image.tag }} ansible-galaxy collection list > build-logs/collections.txt || true
+          podman run --rm ${{ matrix.base_image.tag }} ansible --version > build-logs/ansible-version.txt || true
+        continue-on-error: true
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ee-build-logs-${{ matrix.base_image.name }}
+          path: build-logs/
+          retention-days: 7
+        continue-on-error: true
+
+      - name: Clean up
+        if: always()
+        run: |
+          podman rmi ${{ matrix.base_image.tag }} || true
+          podman system prune -f || true
+

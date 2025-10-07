@@ -1,0 +1,17 @@
+---
+collections:
+  # Install the minimal_collection from Ansible Galaxy
+  - name: kush_gupt.minimal_collection
+    version: ">=1.0.0"
+  
+  # Uncomment to install from Git repository instead
+  # - name: https://github.com/kush-gupt/minimal-collection.git
+  #   type: git
+  #   version: main
+  
+  # Add other required collections here
+  # - name: ansible.posix
+  #   version: ">=1.5.0"
+  # - name: community.general
+  #   version: ">=8.0.0"
+

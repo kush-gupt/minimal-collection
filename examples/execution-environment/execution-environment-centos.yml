@@ -1,0 +1,32 @@
+---
+# Alternative execution environment using CentOS Stream base image from Quay
+# This is useful for CI/CD and testing without requiring Red Hat registry access
+version: 3
+
+images:
+  base_image:
+    name: quay.io/centos/centos:stream9
+
+dependencies:
+  galaxy: requirements.yml
+  python: requirements-ee.txt
+  system: bindep.txt
+
+additional_build_steps:
+  prepend_base:
+    - RUN dnf install -y python3.11 python3.11-pip && dnf clean all
+    - RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+    - RUN python3 -m pip install --upgrade pip
+    - RUN python3 -m pip install ansible-core
+  
+  prepend_galaxy:
+    - RUN echo "Installing kush_gupt.minimal_collection"
+  
+  append_final:
+    - RUN ansible-galaxy collection list | grep minimal_collection || echo "Collection not found"
+    - RUN ansible --version
+    - RUN echo "CentOS Stream EE build complete"
+
+options:
+  package_manager_path: /usr/bin/dnf
+

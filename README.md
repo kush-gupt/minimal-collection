@@ -61,6 +61,20 @@ Manage INI file entries.
 
 - Ansible >= 2.9.10
 
+## Using with Execution Environments
+
+This collection can be added to custom Ansible Automation Platform Execution Environments. See the [Execution Environment Guide](EXECUTION_ENVIRONMENT.md) for detailed instructions on:
+
+- Building a custom EE with ansible-builder
+- Testing and deploying your custom EE
+- Ready-to-use examples in [`examples/execution-environment/`](examples/execution-environment/)
+
+Quick start:
+```bash
+cd examples/execution-environment
+ansible-builder build --tag my-custom-ee:1.0.0
+```
+
 ## License
 
 GPL-3.0-or-later
