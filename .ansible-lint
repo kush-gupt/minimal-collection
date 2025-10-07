@@ -2,4 +2,3 @@
 # Ansible-lint configuration
 skip_list:
   - fqcn[keyword]  # Allow collections keyword instead of requiring FQCN everywhere
-

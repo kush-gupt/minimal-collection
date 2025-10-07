@@ -55,6 +55,7 @@
         option: test_option
         value: test_value
         state: present
+        mode: '0644'
       register: ini_result
 
     - name: Display ini_file test result
