@@ -151,6 +151,34 @@ jobs:
           retention-days: 7
         continue-on-error: true
 
+      - name: Login to GitHub Container Registry
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Tag and push to GHCR
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          # Create GHCR-compatible image name (lowercase repository owner)
+          REPO_OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          GHCR_IMAGE="ghcr.io/${REPO_OWNER_LOWER}/minimal-collection-ee-centos:latest"
+          
+          echo "Tagging image for GHCR: ${GHCR_IMAGE}"
+          podman tag ${{ matrix.base_image.tag }} ${GHCR_IMAGE}
+          
+          echo "Pushing to GitHub Container Registry..."
+          podman push ${GHCR_IMAGE}
+          
+          # Also tag with commit SHA for versioning
+          GHCR_IMAGE_SHA="ghcr.io/${REPO_OWNER_LOWER}/minimal-collection-ee-centos:${{ github.sha }}"
+          echo "Tagging with commit SHA: ${GHCR_IMAGE_SHA}"
+          podman tag ${{ matrix.base_image.tag }} ${GHCR_IMAGE_SHA}
+          podman push ${GHCR_IMAGE_SHA}
+          
+          echo "✅ Successfully pushed execution environment to GHCR"
+          echo "Image: ${GHCR_IMAGE}"
+          echo "Image (SHA): ${GHCR_IMAGE_SHA}"
+
       - name: Clean up
         if: always()
         run: |
